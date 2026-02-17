@@ -1,0 +1,7 @@
+date,amount,type,merchant
+2026-01-01,500,CREDIT,Customer
+2026-01-02,200,DEBIT,Inventory
+2026-01-03,700,CREDIT,Customer
+2026-01-05,300,DEBIT,Utilities
+2026-01-06,900,CREDIT,Customer
+2026-01-07,400,DEBIT,Inventory 
