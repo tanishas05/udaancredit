@@ -3,19 +3,16 @@ import pandas as pd
 from utils import extract_features
 from scoring import calculate_credit_score
 
-# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="UdaanCredit",
     page_icon="↑",
     layout="wide"
 )
 
-# ---------------- GLOBAL CSS ----------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ---- Base ---- */
 html, body, [class*="css"] {
     font-family: 'Sora', sans-serif !important;
 }
@@ -23,8 +20,7 @@ html, body, [class*="css"] {
     background: #04070f;
     color: #e8eef8;
 }
-
-/* Hide default Streamlit chrome */
+ 
 #MainMenu, footer, header { visibility: hidden; }
 .block-container {
     padding-top: 2rem !important;
@@ -32,7 +28,7 @@ html, body, [class*="css"] {
     max-width: 1100px;
 }
 
-/* ---- Background orbs ---- */
+
 .stApp::before {
     content: '';
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -41,7 +37,7 @@ html, body, [class*="css"] {
         radial-gradient(ellipse 60% 50% at 80% 80%, rgba(34,211,238,0.07) 0%, transparent 60%);
 }
 
-/* ---- Inputs ---- */
+
 .stTextInput > div > div > input,
 .stFileUploader > div {
     background: #0b1120 !important;
@@ -62,7 +58,7 @@ html, body, [class*="css"] {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* ---- Buttons ---- */
+
 .stButton > button {
     background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
     color: white !important;
@@ -85,7 +81,7 @@ html, body, [class*="css"] {
     box-shadow: none !important;
 }
 
-/* ---- Metrics ---- */
+
 [data-testid="metric-container"] {
     background: #0b1120;
     border: 1px solid rgba(255,255,255,0.07);
@@ -104,19 +100,19 @@ html, body, [class*="css"] {
     font-weight: 700 !important;
 }
 
-/* ---- Charts ---- */
+
 [data-testid="stArrowVegaLiteChart"], .stLineChart, .stBarChart {
     background: transparent !important;
     border-radius: 10px;
 }
 
-/* ---- Alerts ---- */
+
 .stAlert { border-radius: 10px !important; }
 
-/* ---- Divider ---- */
+
 hr { border-color: rgba(255,255,255,0.06) !important; }
 
-/* ---- Custom Components ---- */
+
 .udaan-nav {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 0 24px 0;
@@ -268,14 +264,14 @@ hr { border-color: rgba(255,255,255,0.06) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- SESSION STATE ----------------
+
 if "page" not in st.session_state:
     st.session_state.page = "login"
 
 def go(page):
     st.session_state.page = page
 
-# ================== LOGIN ==================
+
 if st.session_state.page == "login":
 
     st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
@@ -292,7 +288,7 @@ if st.session_state.page == "login":
     </div>
     """, unsafe_allow_html=True)
 
-    # Inputs rendered by Streamlit inside the visual card
+    
     with st.container():
         email = st.text_input("EMAIL ADDRESS", placeholder="you@example.com", key="login_email")
         password = st.text_input("PASSWORD", placeholder="••••••••", type="password", key="login_pass")
@@ -311,10 +307,10 @@ if st.session_state.page == "login":
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== DASHBOARD ==================
+
 elif st.session_state.page == "dashboard":
 
-    # --- Nav ---
+   
     user_email = st.session_state.get("user", "user@example.com")
     col_logo, col_user, col_logout = st.columns([6, 3, 1])
     with col_logo:
@@ -333,7 +329,7 @@ elif st.session_state.page == "dashboard":
 
     st.markdown('<hr>', unsafe_allow_html=True)
 
-    # --- Upload ---
+    
     st.markdown("""
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
         <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">UPLOAD UPI TRANSACTIONS</span>
@@ -382,7 +378,7 @@ elif st.session_state.page == "dashboard":
 
         eligible = int(features["total_credit"] * 0.3)
 
-        # --- Financial Snapshot ---
+       
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
             <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">FINANCIAL SNAPSHOT</span>
@@ -398,7 +394,7 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # --- Cashflow Charts ---
+        
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
             <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">CASHFLOW PATTERN</span>
@@ -445,7 +441,7 @@ elif st.session_state.page == "dashboard":
             st.plotly_chart(fig2, use_container_width=True)
 
 
-        # --- Credit Score ---
+         
         score_pct = int((score - 300) / 600 * 100)
         inflow_pct = min(int(features['inflow_count'] / max(features['outflow_count'], 1) * 50), 100)
         ticket_pct = min(int(features['avg_ticket_size'] / 1000 * 100), 100)
@@ -505,7 +501,7 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
-        # --- Loan Recommendation ---
+         
         st.markdown(
             f'''<div style="background:rgba(16,185,129,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
             <div>
@@ -522,7 +518,7 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
-        # --- Anomaly Detection ---
+         
         st.markdown(
             '<div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:8px;">ANOMALY DETECTION</div>',
             unsafe_allow_html=True
@@ -578,6 +574,6 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
-        # --- Raw Data Toggle ---
+         
         with st.expander("View Raw Transaction Data"):
             st.dataframe(df.drop(columns=['z_score'], errors='ignore'), use_container_width=True)
