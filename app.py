@@ -16,56 +16,34 @@ st.markdown("""
     background: radial-gradient(circle at top left, #020617, #000);
     color: #e5e7eb;
 }
-
-.login-card {
-    max-width: 420px;
-    margin: 8vh auto;
-    padding: 32px;
-    border-radius: 20px;
-    background: #020617;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.7);
-}
-
-.brand {
-    font-size: 32px;
-    font-weight: 700;
-    color: #22c55e;
-}
-
-.tagline {
-    font-size: 14px;
-    color: #9ca3af;
-    margin-bottom: 28px;
-}
-
-.stButton>button {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: black;
-    font-weight: 600;
-    border-radius: 12px;
-    border: none;
-}
-
-.stButton>button:hover {
-    background: linear-gradient(135deg, #16a34a, #15803d);
-}
-
-input {
-    border-radius: 10px !important;
-}
-
+.section { margin-top: 28px; }
 .card {
-    background: #020617;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
-    padding: 22px;
-    margin-bottom: 20px;
+    background: rgba(2,6,23,0.85);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 22px 26px;
 }
-
-.risk-low { color: #22c55e; font-weight: 700; }
-.risk-medium { color: #facc15; font-weight: 700; }
-.risk-high { color: #ef4444; font-weight: 700; }
+.section-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+.risk-low { color: #4ade80; }
+.risk-medium { color: #facc15; }
+.risk-high { color: #fb7185; }
+.badge {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+.badge-danger {
+    background: rgba(251,113,133,0.12);
+    color: #fb7185;
+}
+.badge-success {
+    background: rgba(74,222,128,0.12);
+    color: #4ade80;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -78,12 +56,7 @@ def go(page):
 
 # ================= LOGIN =================
 if st.session_state.page == "login":
-
-    st.markdown("""
-    <div class="login-card">
-        <div class="brand">UdaanCredit</div>
-        <div class="tagline">UPI-based micro-credit evaluation</div>
-    """, unsafe_allow_html=True)
+    st.markdown("<h2>UdaanCredit</h2>", unsafe_allow_html=True)
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
@@ -95,18 +68,12 @@ if st.session_state.page == "login":
         else:
             st.error("Please enter email and password")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
     if st.button("Create New Account", use_container_width=True):
         go("signup")
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
 # ================= SIGNUP =================
 elif st.session_state.page == "signup":
-
-    st.title("UdaanCredit")
-    st.subheader("Create Account")
+    st.title("Create Account")
 
     name = st.text_input("Full Name")
     email = st.text_input("Email")
@@ -124,11 +91,10 @@ elif st.session_state.page == "signup":
 # ================= DASHBOARD =================
 elif st.session_state.page == "dashboard":
 
-    # HEADER
     h1, h2 = st.columns([8, 1])
     with h1:
         st.markdown("## UdaanCredit")
-        st.caption("UPI-based micro-credit evaluation for informal workers")
+        st.caption("UPI-based micro-credit evaluation")
     with h2:
         st.button("Logout", on_click=go, args=("login",))
 
@@ -146,15 +112,15 @@ elif st.session_state.page == "dashboard":
         df["type"] = df["type"].str.upper()
         df["amount"] = pd.to_numeric(df["amount"])
 
-        # OVERVIEW
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("Transaction Overview")
+        # TRANSACTION OVERVIEW
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Transaction Overview</div>', unsafe_allow_html=True)
         st.dataframe(df, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         # CASHFLOW
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("Cashflow Analysis")
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Cashflow Analysis</div>', unsafe_allow_html=True)
 
         c1, c2 = st.columns(2)
         with c1:
@@ -182,36 +148,32 @@ elif st.session_state.page == "dashboard":
         else:
             risk_class = "risk-high"
 
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("Credit Evaluation")
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Credit Evaluation</div>', unsafe_allow_html=True)
 
-        m1, m2 = st.columns(2)
-        with m1:
+        c1, c2 = st.columns(2)
+        with c1:
             st.metric("Credit Score", score)
-
-        with m2:
+        with c2:
             st.markdown(
-                f"""
-                <div class="{risk_class}" style="font-size:22px;">
-                    Risk Category<br>
-                    <span style="font-size:28px;">{risk}</span>
-                </div>
-                """,
+                f'<div class="{risk_class}" style="font-size:24px;">{risk}</div>',
                 unsafe_allow_html=True
             )
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # LOAN
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("Loan Recommendation")
-
+        # LOAN RECOMMENDATION
         eligible = int(features["total_credit"] * 0.3)
+
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Loan Recommendation</div>', unsafe_allow_html=True)
+
         st.write(f"**Recommended Loan Amount:** ₹{eligible}")
 
         if score >= 700:
-            st.success("Eligible for micro-loan")
+            st.markdown('<div class="badge badge-success">Eligible for micro-loan</div>', unsafe_allow_html=True)
         else:
-            st.warning("High risk — loan not recommended")
+            st.markdown('<div class="badge badge-danger">High risk — loan not recommended</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
+
