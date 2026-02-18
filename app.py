@@ -6,53 +6,78 @@ from scoring import calculate_credit_score, risk_category
 st.markdown("""
 <style>
 
-/* Main container width */
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+/* Page base */
+.stApp {
+    background: radial-gradient(circle at top left, #020617, #000);
+    color: #e5e7eb;
 }
 
-/* Headings */
-h1, h2, h3 {
+/* Center login card */
+.login-card {
+    max-width: 420px;
+    margin: 8vh auto;
+    padding: 32px;
+    border-radius: 20px;
+    background: #020617;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+}
+
+/* Brand */
+.brand {
+    font-size: 32px;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 4px;
+}
+
+.tagline {
+    font-size: 14px;
+    color: #9ca3af;
+    margin-bottom: 28px;
+}
+
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: black;
     font-weight: 600;
-    letter-spacing: -0.3px;
+    border-radius: 12px;
+    padding: 10px 16px;
+    border: none;
 }
 
-/* Card style */
+.stButton>button:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* Input fields */
+input {
+    border-radius: 10px !important;
+}
+
+/* Cards */
 .card {
-    background: linear-gradient(180deg, #020617, #020617);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    background: #020617;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 22px;
 }
 
-/* Section spacing */
-.section {
-    margin-top: 2.5rem;
-}
-
-/* Metric styling */
-[data-testid="stMetricValue"] {
-    font-size: 28px;
+/* Risk badges */
+.risk-low {
+    color: #22c55e;
     font-weight: 700;
 }
 
-[data-testid="stMetricLabel"] {
-    font-size: 14px;
-    color: #9ca3af;
+.risk-medium {
+    color: #facc15;
+    font-weight: 700;
 }
 
-/* Upload box */
-[data-testid="stFileUploader"] {
-    border-radius: 14px;
-}
-
-/* Divider */
-hr {
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    margin: 2.5rem 0;
+.risk-high {
+    color: #ef4444;
+    font-weight: 700;
 }
 
 </style>
@@ -74,22 +99,30 @@ def go(page):
 
 # ================= LOGIN =================
 if st.session_state.page == "login":
-    st.title("UdaanCredit")
-    st.caption("UPI-based micro-credit evaluation for informal workers")
 
-    st.subheader("User Login")
+    st.markdown("""
+    <div class="login-card">
+        <div class="brand">UdaanCredit</div>
+        <div class="tagline">UPI-based micro-credit evaluation</div>
+    """, unsafe_allow_html=True)
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
-    if st.button("Login"):
+    if st.button("Login", use_container_width=True):
         if email and password:
             st.session_state.user = email
             go("dashboard")
         else:
-            st.error("Email and password required")
+            st.error("Please enter email and password")
 
-    st.button("Create New Account", on_click=go, args=("signup",))
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.button("Create New Account", use_container_width=True):
+        go("signup")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 # ================= SIGNUP =================
 elif st.session_state.page == "signup":
@@ -157,21 +190,45 @@ elif st.session_state.page == "dashboard":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # CREDIT EVALUATION
-        features = extract_features(df)
-        score = calculate_credit_score(features)
-        risk = risk_category(score)
+       # CREDIT EVALUATION
+features = extract_features(df)
+score = calculate_credit_score(features)
+risk = risk_category(score)
 
-        st.markdown('<div class="section card">', unsafe_allow_html=True)
-        st.subheader("Credit Evaluation")
+# Risk color logic
+if score >= 700:
+    risk_class = "risk-low"
+elif score >= 600:
+    risk_class = "risk-medium"
+else:
+    risk_class = "risk-high"
 
-        m1, m2 = st.columns(2)
-        with m1:
-            st.metric("Credit Score", score)
-        with m2:
-            st.metric("Risk Category", risk)
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.subheader("Credit Evaluation")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+m1, m2 = st.columns(2)
+
+with m1:
+    st.metric(
+        label="Credit Score",
+        value=score,
+        delta="Good" if score >= 700 else "Poor",
+        delta_color="normal"
+    )
+
+with m2:
+    st.markdown(
+        f"""
+        <div class="{risk_class}" style="font-size:22px;">
+            Risk Category<br>
+            <span style="font-size:28px;">{risk}</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.markdown('</div>', unsafe_allow_html=True)
+
 
         # LOAN
         st.markdown('<div class="section card">', unsafe_allow_html=True)
