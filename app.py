@@ -421,7 +421,11 @@ elif st.session_state.page == "dashboard":
             st.line_chart(daily, color="#3b82f6")
         with col2:
             st.caption("Income vs Expense")
-            st.bar_chart({"Income": features['total_credit'], "Expense": features['total_debit']}, color=["#22d3ee", "#f43f5e"])
+            bar_df = pd.DataFrame({
+                "Category": ["Income", "Expense"],
+                "Amount": [features['total_credit'], features['total_debit']]
+            }).set_index("Category")
+            st.bar_chart(bar_df, color="#22d3ee")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
