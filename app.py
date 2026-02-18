@@ -306,7 +306,7 @@ if st.session_state.page == "login":
                 st.error("Please enter your email and password.")
 
     st.markdown("""
-        <div class="login-footer">🔐 Secure · RBI-aligned · Encrypted data</div>
+        <div class="login-footer">Secure · RBI-aligned · Encrypted data</div>
     """, unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
@@ -325,7 +325,7 @@ elif st.session_state.page == "dashboard":
         </div>
         """, unsafe_allow_html=True)
     with col_user:
-        st.markdown(f'<div class="udaan-user" style="padding-top:8px;">👤 {user_email}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="udaan-user" style="padding-top:8px;">{user_email}</div>', unsafe_allow_html=True)
     with col_logout:
         if st.button("Logout", key="logout"):
             go("login")
@@ -336,7 +336,7 @@ elif st.session_state.page == "dashboard":
     # --- Upload ---
     st.markdown("""
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📤 UPLOAD UPI TRANSACTIONS</span>
+        <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">UPLOAD UPI TRANSACTIONS</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -370,22 +370,22 @@ elif st.session_state.page == "dashboard":
         if score >= 720 and ratio > 1.2 and freq > 20:
             risk = "Low Risk"
             risk_class = "risk-low"
-            risk_icon = "✅"
+            risk_icon = ""
         elif score >= 620 and ratio > 0.9:
             risk = "Moderate Risk"
             risk_class = "risk-medium"
-            risk_icon = "⚠️"
+            risk_icon = ""
         else:
             risk = "High Risk"
             risk_class = "risk-high"
-            risk_icon = "❌"
+            risk_icon = ""
 
         eligible = int(features["total_credit"] * 0.3)
 
         # --- Financial Snapshot ---
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📊 FINANCIAL SNAPSHOT</span>
+            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">FINANCIAL SNAPSHOT</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -401,7 +401,7 @@ elif st.session_state.page == "dashboard":
         # --- Cashflow Charts ---
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📈 CASHFLOW PATTERN</span>
+            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">CASHFLOW PATTERN</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -453,17 +453,17 @@ elif st.session_state.page == "dashboard":
 
         if risk == "Low Risk":
             risk_color = "#34d399"; risk_bg = "rgba(16,185,129,0.12)"; risk_border = "rgba(16,185,129,0.25)"
-            verdict_icon = "✅"; verdict_text = "Approved for Instant Micro-Loan"
+            verdict_icon = ""; verdict_text = "Approved for Instant Micro-Loan"
             verdict_color = "#34d399"; verdict_bg = "rgba(16,185,129,0.12)"; verdict_border = "rgba(16,185,129,0.25)"
             rate = "14.5% p.a."
         elif risk == "Moderate Risk":
             risk_color = "#fbbf24"; risk_bg = "rgba(245,158,11,0.12)"; risk_border = "rgba(245,158,11,0.25)"
-            verdict_icon = "⚠️"; verdict_text = "Eligible with Conditions"
+            verdict_icon = ""; verdict_text = "Eligible with Conditions"
             verdict_color = "#fbbf24"; verdict_bg = "rgba(245,158,11,0.12)"; verdict_border = "rgba(245,158,11,0.25)"
             rate = "18.0% p.a."
         else:
             risk_color = "#f87171"; risk_bg = "rgba(239,68,68,0.12)"; risk_border = "rgba(239,68,68,0.25)"
-            verdict_icon = "❌"; verdict_text = "Loan Not Recommended"
+            verdict_icon = ""; verdict_text = "Loan Not Recommended"
             verdict_color = "#f87171"; verdict_bg = "rgba(239,68,68,0.12)"; verdict_border = "rgba(239,68,68,0.25)"
             rate = "N/A"
 
@@ -483,7 +483,7 @@ elif st.session_state.page == "dashboard":
         with col_score:
             st.markdown(
                 f'''<div style="background:#0b1120;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;">
-                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:6px;">🧠 AI CREDIT SCORE</div>
+                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:6px;">AI CREDIT SCORE</div>
                 <div style="font-size:3rem;font-weight:800;background:linear-gradient(135deg,#22d3ee,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:monospace;">{score}</div>
                 <div style="font-size:0.75rem;color:#7a90b0;margin-top:4px;margin-bottom:14px;">out of 900</div>
                 <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:100px;background:{risk_bg};border:1px solid {risk_border};color:{risk_color};font-weight:700;font-size:0.82rem;">{risk_icon} {risk}</div>
@@ -509,7 +509,7 @@ elif st.session_state.page == "dashboard":
         st.markdown(
             f'''<div style="background:rgba(16,185,129,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
             <div>
-                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:5px;">💸 LOAN RECOMMENDATION</div>
+                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:5px;">LOAN RECOMMENDATION</div>
                 <div style="font-size:1.7rem;font-weight:800;color:#34d399;font-family:monospace;">₹{eligible:,}</div>
                 <div style="font-size:0.78rem;color:#7a90b0;margin-top:2px;">Rate: <span style="font-family:monospace;">{rate}</span></div>
             </div>
@@ -523,5 +523,5 @@ elif st.session_state.page == "dashboard":
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
         # --- Raw Data Toggle ---
-        with st.expander("🔍 View Raw Transaction Data"):
+        with st.expander("View Raw Transaction Data"):
             st.dataframe(df, use_container_width=True)
