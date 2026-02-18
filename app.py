@@ -522,6 +522,62 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
+        # --- Anomaly Detection ---
+        st.markdown(
+            '<div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:8px;">ANOMALY DETECTION</div>',
+            unsafe_allow_html=True
+        )
+
+        from datetime import timedelta
+        mean_amt = df['amount'].mean()
+        std_amt = df['amount'].std()
+        df['z_score'] = ((df['amount'] - mean_amt) / std_amt).abs()
+        anomalies = df[df['z_score'] > 3].copy()
+
+        daily = df.groupby('date')['amount'].sum()
+        daily_mean = daily.mean()
+        daily_std = daily.std()
+        spike_dates = daily[((daily - daily_mean) / daily_std).abs() > 2].index
+
+        date_range = pd.date_range(df['date'].min(), df['date'].max())
+        active_dates = df['date'].dt.date.unique()
+        gaps = []
+        gap_start = None
+        for d in date_range:
+            if d.date() not in active_dates:
+                if gap_start is None:
+                    gap_start = d
+            else:
+                if gap_start and (d - gap_start).days >= 7:
+                    gaps.append((gap_start.date(), (d - timedelta(days=1)).date(), (d - gap_start).days))
+                gap_start = None
+
+        total_anomalies = len(anomalies) + len(spike_dates)
+        if total_anomalies == 0:
+            a_color = "#34d399"; a_bg = "rgba(16,185,129,0.08)"; a_border = "rgba(16,185,129,0.2)"
+            a_status = "Clean"; a_desc = "No suspicious transactions detected"
+        elif total_anomalies <= 3:
+            a_color = "#fbbf24"; a_bg = "rgba(245,158,11,0.08)"; a_border = "rgba(245,158,11,0.2)"
+            a_status = "Minor Flags"; a_desc = f"{total_anomalies} unusual pattern(s) found"
+        else:
+            a_color = "#f87171"; a_bg = "rgba(239,68,68,0.08)"; a_border = "rgba(239,68,68,0.2)"
+            a_status = "High Risk"; a_desc = f"{total_anomalies} suspicious pattern(s) detected"
+
+        col_a1, col_a2, col_a3 = st.columns(3)
+        with col_a1:
+            st.markdown(f'<div style="background:{a_bg};border:1px solid {a_border};border-radius:14px;padding:16px 20px;"><div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.08em;margin-bottom:6px;">OVERALL STATUS</div><div style="font-size:1.3rem;font-weight:800;color:{a_color};">{a_status}</div><div style="font-size:0.78rem;color:#7a90b0;margin-top:4px;">{a_desc}</div></div>', unsafe_allow_html=True)
+        with col_a2:
+            st.markdown(f'<div style="background:#0b1120;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 20px;"><div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.08em;margin-bottom:6px;">OUTLIER TRANSACTIONS</div><div style="font-size:1.3rem;font-weight:800;color:#e8eef8;">{len(anomalies)}</div><div style="font-size:0.78rem;color:#7a90b0;margin-top:4px;">Amounts &gt; 3x std deviation</div></div>', unsafe_allow_html=True)
+        with col_a3:
+            st.markdown(f'<div style="background:#0b1120;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 20px;"><div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.08em;margin-bottom:6px;">ACTIVITY GAPS</div><div style="font-size:1.3rem;font-weight:800;color:#e8eef8;">{len(gaps)}</div><div style="font-size:0.78rem;color:#7a90b0;margin-top:4px;">Periods &gt; 7 days inactive</div></div>', unsafe_allow_html=True)
+
+        if len(anomalies) > 0:
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+            with st.expander(f"View {len(anomalies)} Flagged Transaction(s)"):
+                st.dataframe(anomalies[['date','type','amount','z_score']].rename(columns={'z_score':'anomaly_score'}).round(2), use_container_width=True)
+
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+
         # --- Raw Data Toggle ---
         with st.expander("View Raw Transaction Data"):
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df.drop(columns=['z_score'], errors='ignore'), use_container_width=True)
