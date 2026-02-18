@@ -9,15 +9,21 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- BASIC STYLING ----------------
+# ---------------- LIGHT STYLING ----------------
 st.markdown("""
 <style>
 .section {
-    padding: 1.5rem;
+    padding: 0.8rem 0;
     margin-bottom: 1.5rem;
-    border-radius: 12px;
-    background-color: #f8f9fb;
-    border: 1px solid #e6e6e6;
+}
+.section h3 {
+    color: #1f4fd8;
+    margin-bottom: 0.3rem;
+}
+hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 0.8rem 0 1.2rem 0;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -69,15 +75,18 @@ elif st.session_state.page == "signup":
 
 # ================= DASHBOARD =================
 elif st.session_state.page == "dashboard":
-    st.title("Credit Assessment Dashboard")
+
+    # -------- DASHBOARD HEADER --------
+    st.markdown("UdaanCredit")
     st.caption("UPI-based micro-credit evaluation for informal workers")
 
     st.button("Logout", on_click=go, args=("login",))
     st.divider()
 
-    # ---------- DATA UPLOAD ----------
+    # -------- DATA UPLOAD --------
     st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.subheader("Transaction Data Upload")
+    st.markdown("Transaction Data Upload")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
         "Upload UPI Transaction CSV",
@@ -93,21 +102,23 @@ elif st.session_state.page == "dashboard":
         df["type"] = df["type"].astype(str).str.strip().str.upper()
         df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
 
-        # ---------- TRANSACTION OVERVIEW ----------
+        # -------- TRANSACTION OVERVIEW --------
         st.markdown('<div class="section">', unsafe_allow_html=True)
-        st.subheader("Transaction Overview")
+        st.markdown("Transaction Overview")
+        st.markdown("<hr>", unsafe_allow_html=True)
         st.dataframe(df, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ---------- FEATURE EXTRACTION ----------
+        # -------- FEATURE EXTRACTION --------
         features = extract_features(df)
         score = calculate_credit_score(features)
         risk = risk_category(score)
         eligible_loan = int(features["total_credit"] * 0.3)
 
-        # ---------- SUMMARY METRICS ----------
+        # -------- SUMMARY METRICS --------
         st.markdown('<div class="section">', unsafe_allow_html=True)
-        st.subheader("Financial Summary")
+        st.markdown("Financial Summary")
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -121,9 +132,10 @@ elif st.session_state.page == "dashboard":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ---------- CASHFLOW & INFLOW-OUTFLOW ----------
+        # -------- CASHFLOW ANALYSIS --------
         st.markdown('<div class="section">', unsafe_allow_html=True)
-        st.subheader("Cashflow Analysis")
+        st.markdown("Cashflow Analysis")
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
 
@@ -149,9 +161,10 @@ elif st.session_state.page == "dashboard":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ---------- AML MONITORING ----------
+        # -------- AML MONITORING --------
         st.markdown('<div class="section">', unsafe_allow_html=True)
-        st.subheader("Transaction Risk Monitoring")
+        st.markdown("Transaction Risk Monitoring")
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         avg_amt = df["amount"].mean()
         suspicious = df[df["amount"] > 2 * avg_amt]
@@ -164,9 +177,11 @@ elif st.session_state.page == "dashboard":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ---------- LOAN RECOMMENDATION ----------
+        # -------- LOAN RECOMMENDATION --------
         st.markdown('<div class="section">', unsafe_allow_html=True)
-        st.subheader("Loan Recommendation")
+        st.markdown("Loan Recommendation")
+        st.markdown("<hr>", unsafe_allow_html=True)
+
         st.write(f"Recommended Loan Amount: ₹{eligible_loan}")
 
         if score >= 700:
