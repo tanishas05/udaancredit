@@ -3,6 +3,62 @@ import pandas as pd
 from utils import extract_features
 from scoring import calculate_credit_score, risk_category
 
+st.markdown("""
+<style>
+
+/* Main container width */
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* Headings */
+h1, h2, h3 {
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+/* Card style */
+.card {
+    background: linear-gradient(180deg, #020617, #020617);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* Section spacing */
+.section {
+    margin-top: 2.5rem;
+}
+
+/* Metric styling */
+[data-testid="stMetricValue"] {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+[data-testid="stMetricLabel"] {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+/* Upload box */
+[data-testid="stFileUploader"] {
+    border-radius: 14px;
+}
+
+/* Divider */
+hr {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 2.5rem 0;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="UdaanCredit",
@@ -53,95 +109,79 @@ elif st.session_state.page == "signup":
 
     st.button("Back to Login", on_click=go, args=("login",))
 
-# ================= DASHBOARD =================
 elif st.session_state.page == "dashboard":
 
-    # ---------- HEADER ----------
-    col1, col2 = st.columns([8, 1])
-    with col1:
-        st.title("UdaanCredit")
+    # HEADER
+    h1, h2 = st.columns([8, 1])
+    with h1:
+        st.markdown("## UdaanCredit")
         st.caption("UPI-based micro-credit evaluation for informal workers")
-    with col2:
+    with h2:
         st.button("Logout", on_click=go, args=("login",))
 
-    st.divider()
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    # ---------- UPLOAD ----------
+    # UPLOAD CARD
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Transaction Data Upload")
     uploaded_file = st.file_uploader("Upload UPI Transaction CSV", type=["csv"])
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
-
         df["date"] = pd.to_datetime(df["date"])
-        df["type"] = df["type"].str.upper().str.strip()
-        df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+        df["type"] = df["type"].str.upper()
+        df["amount"] = pd.to_numeric(df["amount"])
 
-        # ---------- OVERVIEW ----------
+        # OVERVIEW
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
         st.subheader("Transaction Overview")
         st.dataframe(df, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.divider()
-
-        # ---------- CASHFLOW ----------
+        # CASHFLOW
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
         st.subheader("Cashflow Analysis")
 
         c1, c2 = st.columns(2)
-
         with c1:
-            st.markdown("**Daily Cashflow**")
+            st.caption("Daily Cashflow")
             daily = df.groupby("date")["amount"].sum()
             st.line_chart(daily)
 
         with c2:
-            st.markdown("**Income vs Expense**")
+            st.caption("Income vs Expense")
             credit = df[df["type"] == "CREDIT"]["amount"].sum()
             debit = df[df["type"] == "DEBIT"]["amount"].sum()
+            st.bar_chart({"Income": credit, "Expense": debit})
 
-            bar_df = pd.DataFrame(
-                {"Amount": [credit, debit]},
-                index=["Income", "Expense"]
-            )
-            st.bar_chart(bar_df)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.divider()
-
-        # ---------- FEATURES ----------
-        st.subheader("Derived Financial Features")
+        # CREDIT EVALUATION
         features = extract_features(df)
-        st.json(features)
-
-        st.divider()
-
-        # ---------- CREDIT EVALUATION ----------
-        st.subheader("Credit Evaluation")
-
         score = calculate_credit_score(features)
         risk = risk_category(score)
 
-        b1, b2 = st.columns(2)
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.subheader("Credit Evaluation")
 
-        with b1:
+        m1, m2 = st.columns(2)
+        with m1:
             st.metric("Credit Score", score)
-
-        with b2:
+        with m2:
             st.metric("Risk Category", risk)
 
-        st.divider()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # ---------- LOAN ----------
+        # LOAN
+        st.markdown('<div class="section card">', unsafe_allow_html=True)
         st.subheader("Loan Recommendation")
-
-        eligible_loan = int(features["total_credit"] * 0.3)
-        st.write(f"**Recommended Loan Amount:** ₹{eligible_loan}")
+        eligible = int(features["total_credit"] * 0.3)
+        st.write(f"**Recommended Loan Amount:** ₹{eligible}")
 
         if score >= 700:
             st.success("Eligible for micro-loan")
         else:
-            st.warning("Currently not eligible for micro-loan")
+            st.warning("High risk — loan not recommended")
 
-    else:
-        st.info("Please upload a UPI CSV file to begin analysis")
-
-
-
+        st.markdown('</div>', unsafe_allow_html=True)
