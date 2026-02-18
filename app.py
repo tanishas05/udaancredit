@@ -19,18 +19,19 @@ st.markdown("""
     }
     .subtitle {
         color: #64748b;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
     }
     .section-title {
         font-size: 20px;
         font-weight: 600;
-        margin-top: 30px;
+        margin-top: 20px;
+        margin-bottom: 8px;
         color: #1e293b;
     }
     .thin-line {
         height: 1px;
         background-color: #e5e7eb;
-        margin: 25px 0;
+        margin: 20px 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -87,7 +88,7 @@ elif st.session_state.page == "dashboard":
     # -------- HEADER --------
     col1, col2 = st.columns([6, 1])
     with col1:
-        st.markdown("<div class='main-title'>UdaanCredit Dashboard</div>", unsafe_allow_html=True)
+        st.markdown("<div class='main-title'>UdaanCredit</div>", unsafe_allow_html=True)
         st.markdown("<div class='subtitle'>UPI-based micro-credit evaluation for informal workers</div>", unsafe_allow_html=True)
     with col2:
         st.button("Logout", on_click=go, args=("login",))
@@ -106,7 +107,7 @@ elif st.session_state.page == "dashboard":
         df = pd.read_csv(uploaded_file)
         df["date"] = pd.to_datetime(df["date"])
 
-        # -------- PREVIEW --------
+        # -------- TRANSACTION OVERVIEW --------
         st.markdown("<div class='section-title'>Transaction Overview</div>", unsafe_allow_html=True)
         st.dataframe(df, use_container_width=True)
 
@@ -137,7 +138,7 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
-        # -------- CREDIT SCORE --------
+        # -------- CREDIT EVALUATION --------
         st.markdown("<div class='section-title'>Credit Evaluation</div>", unsafe_allow_html=True)
 
         score = calculate_credit_score(features)
@@ -149,25 +150,11 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
-        # -------- AML --------
-        st.markdown("<div class='section-title'>Transaction Risk Monitoring</div>", unsafe_allow_html=True)
-
-        avg_amt = df["amount"].mean()
-        suspicious = df[df["amount"] > 2 * avg_amt]
-
-        if suspicious.empty:
-            st.success("No anomalous transactions detected")
-        else:
-            st.warning("Potential anomalous transactions identified")
-            st.dataframe(suspicious)
-
-        st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
-
-        # -------- LOAN --------
+        # -------- LOAN RECOMMENDATION (FIXED SPACING) --------
         st.markdown("<div class='section-title'>Loan Recommendation</div>", unsafe_allow_html=True)
 
         eligible_loan = int(features["total_credit"] * 0.3)
-        st.write(f"**Recommended Loan Amount:** ₹{eligible_loan}")
+        st.markdown(f"**Recommended Loan Amount:** ₹{eligible_loan}")
 
         if score >= 700:
             st.success("Eligible for micro-loan")
@@ -177,7 +164,5 @@ elif st.session_state.page == "dashboard":
     else:
         st.info("Please upload a sample UPI CSV file to begin analysis")
 
-    else:
-        st.info("Please upload a sample UPI CSV file to begin analysis")
 
 
