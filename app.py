@@ -54,18 +54,16 @@ elif st.session_state.page == "signup":
 
     st.button("Back to Login", on_click=go, args=("login",))
 
+# ---------------- DASHBOARD ----------------
 elif st.session_state.page == "dashboard":
     st.title("Credit Assessment Dashboard")
     st.caption("UPI-based micro-credit evaluation for informal workers")
 
-    top_col1, top_col2 = st.columns([6, 1])
-    with top_col2:
-        st.button("Logout", on_click=go, args=("login",))
-
+    st.button("Logout", on_click=go, args=("login",))
     st.divider()
 
     # ---------------- DATA UPLOAD ----------------
-    st.subheader("Upload Transaction Data")
+    st.subheader("Transaction Data Upload")
     uploaded_file = st.file_uploader(
         "Upload UPI Transaction CSV",
         type=["csv"]
@@ -73,78 +71,81 @@ elif st.session_state.page == "dashboard":
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
+
+        # Data cleaning
         df["date"] = pd.to_datetime(df["date"])
+        df["type"] = df["type"].astype(str).str.strip().str.upper()
+        df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
 
-        # ---------------- OVERVIEW ----------------
-        with st.container():
-            st.subheader("Transaction Overview")
-            st.dataframe(df, use_container_width=True)
+        # ---------------- DATA PREVIEW ----------------
+        st.subheader("Transaction Overview")
+        st.dataframe(df, use_container_width=True)
 
-        # ---------------- CASHFLOW ----------------
-        with st.container():
-            st.subheader("Cashflow Analysis")
+        # ---------------- FEATURE EXTRACTION ----------------
+        features = extract_features(df)
+        score = calculate_credit_score(features)
+        risk = risk_category(score)
+        eligible_loan = int(features["total_credit"] * 0.3)
 
-            col1, col2 = st.columns(2)
+        # ---------------- SUMMARY METRICS ----------------
+        st.subheader("Financial Summary")
 
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("Total Income (₹)", int(features["total_credit"]))
+        with c2:
+            st.metric("Total Expense (₹)", int(features["total_debit"]))
+        with c3:
+            st.metric("Credit Score", score)
+        with c4:
+            st.metric("Risk Category", risk)
+
+        # ---------------- CASHFLOW & INFLOW-OUTFLOW ----------------
+        st.subheader("Cashflow Analysis")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.write("Cashflow Over Time")
             daily = df.groupby("date")["amount"].sum()
-            with col1:
-                st.caption("Daily Net Cashflow")
-                st.line_chart(daily)
+            st.line_chart(daily, use_container_width=True)
+
+        with col2:
+            st.write("Income vs Expense")
 
             credit = df[df["type"] == "CREDIT"]["amount"].sum()
             debit = df[df["type"] == "DEBIT"]["amount"].sum()
 
-            bar_df = pd.DataFrame(
-                {"Amount": [credit, debit]},
-                index=["Income", "Expense"]
-            )
+            bar_df = pd.DataFrame({
+                "Category": ["Income", "Expense"],
+                "Amount": [credit, debit]
+            }).set_index("Category")
 
-            with col2:
-                st.caption("Income vs Expense")
-                st.bar_chart(bar_df)
-
-        # ---------------- FEATURES ----------------
-        with st.container():
-            st.subheader("Derived Financial Features")
-            features = extract_features(df)
-            st.json(features)
-
-        # ---------------- CREDIT SCORE ----------------
-        with st.container():
-            st.subheader("Credit Evaluation")
-
-            score = calculate_credit_score(features)
-            risk = risk_category(score)
-
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Credit Score", score)
-            m2.metric("Risk Category", risk)
-            m3.metric("Total Income", f"₹{int(features['total_credit'])}")
-
-        # ---------------- AML ----------------
-        with st.container():
-            st.subheader("Transaction Risk Monitoring")
-
-            avg_amt = df["amount"].mean()
-            suspicious = df[df["amount"] > 2 * avg_amt]
-
-            if suspicious.empty:
-                st.success("No anomalous transactions detected")
+            if credit == 0 and debit == 0:
+                st.warning("No valid income or expense data available.")
             else:
-                st.warning("Potential anomalous transactions detected")
-                st.dataframe(suspicious)
+                st.bar_chart(bar_df, use_container_width=True)
 
-        # ---------------- LOAN ----------------
-        with st.container():
-            st.subheader("Loan Recommendation")
+        # ---------------- AML MONITORING ----------------
+        st.subheader("Transaction Risk Monitoring")
 
-            eligible_loan = int(features["total_credit"] * 0.3)
-            st.write(f"Recommended Loan Amount: ₹{eligible_loan}")
+        avg_amt = df["amount"].mean()
+        suspicious = df[df["amount"] > 2 * avg_amt]
 
-            if score >= 700:
-                st.success("Eligible for micro-loan")
-            else:
-                st.warning("Currently not eligible for micro-loan")
+        if suspicious.empty:
+            st.success("No anomalous transactions detected")
+        else:
+            st.warning("Potential anomalous transactions identified")
+            st.dataframe(suspicious, use_container_width=True)
+
+        # ---------------- LOAN RECOMMENDATION ----------------
+        st.subheader("Loan Recommendation")
+        st.write(f"Recommended Loan Amount: ₹{eligible_loan}")
+
+        if score >= 700:
+            st.success("Eligible for micro-loan")
+        else:
+            st.warning("Currently not eligible for micro-loan")
 
     else:
-        st.info("Please upload a UPI transaction CSV to begin analysis.")
+        st.info("Please upload a sample UPI CSV file to begin analysis")
