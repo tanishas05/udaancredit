@@ -63,6 +63,7 @@ elif st.session_state.page == "dashboard":
     st.divider()
 
     # ---------------- DATA UPLOAD ----------------
+    with st.container():
     st.subheader("Transaction Data Upload")
     uploaded_file = st.file_uploader(
         "Upload UPI Transaction CSV",
@@ -78,16 +79,19 @@ elif st.session_state.page == "dashboard":
         df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
 
         # ---------------- DATA PREVIEW ----------------
+        with st.container():
         st.subheader("Transaction Overview")
         st.dataframe(df, use_container_width=True)
 
         # ---------------- FEATURE EXTRACTION ----------------
+        with st.container():
         features = extract_features(df)
         score = calculate_credit_score(features)
         risk = risk_category(score)
         eligible_loan = int(features["total_credit"] * 0.3)
 
         # ---------------- SUMMARY METRICS ----------------
+        with st.container():
         st.subheader("Financial Summary")
 
         c1, c2, c3, c4 = st.columns(4)
@@ -101,6 +105,7 @@ elif st.session_state.page == "dashboard":
             st.metric("Risk Category", risk)
 
         # ---------------- CASHFLOW & INFLOW-OUTFLOW ----------------
+        with st.container():
         st.subheader("Cashflow Analysis")
 
         col1, col2 = st.columns(2)
@@ -127,6 +132,7 @@ elif st.session_state.page == "dashboard":
                 st.bar_chart(bar_df, use_container_width=True)
 
         # ---------------- AML MONITORING ----------------
+        with st.container():
         st.subheader("Transaction Risk Monitoring")
 
         avg_amt = df["amount"].mean()
@@ -139,6 +145,7 @@ elif st.session_state.page == "dashboard":
             st.dataframe(suspicious, use_container_width=True)
 
         # ---------------- LOAN RECOMMENDATION ----------------
+        with st.container():
         st.subheader("Loan Recommendation")
         st.write(f"Recommended Loan Amount: ₹{eligible_loan}")
 
