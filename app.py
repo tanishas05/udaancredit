@@ -9,29 +9,39 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- DARK MODE CSS ----------------
 st.markdown("""
 <style>
+    body {
+        background-color: #0f172a;
+        color: #e5e7eb;
+    }
     .main-title {
         font-size: 28px;
         font-weight: 600;
-        color: #0f172a;
+        color: #f8fafc;
     }
     .subtitle {
-        color: #64748b;
+        color: #94a3b8;
         margin-bottom: 12px;
     }
     .section-title {
         font-size: 20px;
         font-weight: 600;
-        margin-top: 20px;
-        margin-bottom: 8px;
-        color: #1e293b;
+        margin-top: 24px;
+        margin-bottom: 10px;
+        color: #e5e7eb;
     }
     .thin-line {
         height: 1px;
-        background-color: #e5e7eb;
+        background-color: #334155;
         margin: 20px 0;
+    }
+    .card {
+        background-color: #020617;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #1e293b;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -113,21 +123,26 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
-        # -------- CASHFLOW --------
+        # -------- CASHFLOW (SIDE BY SIDE) --------
         st.markdown("<div class='section-title'>Cashflow Analysis</div>", unsafe_allow_html=True)
 
-        daily = df.groupby("date")["amount"].sum()
-        st.line_chart(daily)
+        col1, col2 = st.columns(2)
 
-        credit = df[df["type"] == "CREDIT"]["amount"].sum()
-        debit = df[df["type"] == "DEBIT"]["amount"].sum()
+        with col1:
+            st.markdown("<div class='card'>Daily Cashflow</div>", unsafe_allow_html=True)
+            daily = df.groupby("date")["amount"].sum()
+            st.line_chart(daily)
 
-        bar_df = pd.DataFrame({
-            "Income": [credit],
-            "Expense": [debit]
-        })
+        with col2:
+            st.markdown("<div class='card'>Income vs Expense</div>", unsafe_allow_html=True)
+            credit = df[df["type"] == "CREDIT"]["amount"].sum()
+            debit = df[df["type"] == "DEBIT"]["amount"].sum()
 
-        st.bar_chart(bar_df)
+            bar_df = pd.DataFrame({
+                "Amount": [credit, debit]
+            }, index=["Income", "Expense"])
+
+            st.bar_chart(bar_df)
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
@@ -138,19 +153,27 @@ elif st.session_state.page == "dashboard":
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
-        # -------- CREDIT EVALUATION --------
+        # -------- CREDIT SCORE & RISK (SEPARATE BOXES) --------
         st.markdown("<div class='section-title'>Credit Evaluation</div>", unsafe_allow_html=True)
 
         score = calculate_credit_score(features)
         risk = risk_category(score)
 
         col1, col2 = st.columns(2)
-        col1.metric("Credit Score", score)
-        col2.metric("Risk Category", risk)
+
+        with col1:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.metric("Credit Score", score)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.metric("Risk Category", risk)
+            st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
-        # -------- LOAN RECOMMENDATION (FIXED SPACING) --------
+        # -------- LOAN RECOMMENDATION --------
         st.markdown("<div class='section-title'>Loan Recommendation</div>", unsafe_allow_html=True)
 
         eligible_loan = int(features["total_credit"] * 0.3)
