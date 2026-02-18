@@ -335,11 +335,8 @@ elif st.session_state.page == "dashboard":
 
     # --- Upload ---
     st.markdown("""
-    <div class="section-card">
-        <div class="section-header">
-            <span class="section-icon">📤</span>
-            <span class="section-title">Upload UPI Transactions</span>
-        </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📤 UPLOAD UPI TRANSACTIONS</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -387,11 +384,8 @@ elif st.session_state.page == "dashboard":
 
         # --- Financial Snapshot ---
         st.markdown("""
-        <div class="section-card">
-            <div class="section-header">
-                <span class="section-icon">📊</span>
-                <span class="section-title">Financial Snapshot</span>
-            </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📊 FINANCIAL SNAPSHOT</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -406,142 +400,128 @@ elif st.session_state.page == "dashboard":
 
         # --- Cashflow Charts ---
         st.markdown("""
-        <div class="section-card">
-            <div class="section-header">
-                <span class="section-icon">📈</span>
-                <span class="section-title">Cashflow Pattern</span>
-            </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;">📈 CASHFLOW PATTERN</span>
         </div>
         """, unsafe_allow_html=True)
 
+        import plotly.graph_objects as go
         col1, col2 = st.columns(2)
         with col1:
             st.caption("Daily Transaction Volume")
-            daily = df.groupby("date")["amount"].sum()
-            st.line_chart(daily, color="#3b82f6")
+            daily = df.groupby("date")["amount"].sum().reset_index()
+            fig1 = go.Figure()
+            fig1.add_trace(go.Scatter(
+                x=daily["date"], y=daily["amount"],
+                mode="lines+markers",
+                line=dict(color="#3b82f6", width=2),
+                marker=dict(color="#22d3ee", size=5),
+                fill="tozeroy", fillcolor="rgba(59,130,246,0.1)"
+            ))
+            fig1.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(l=0,r=0,t=0,b=0), height=220,
+                xaxis=dict(showgrid=False, color="#7a90b0", tickfont=dict(size=10)),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", color="#7a90b0", tickfont=dict(size=10)),
+                showlegend=False
+            )
+            st.plotly_chart(fig1, use_container_width=True)
         with col2:
             st.caption("Income vs Expense")
-            bar_df = pd.DataFrame({
-                "Category": ["Income", "Expense"],
-                "Amount": [features['total_credit'], features['total_debit']]
-            }).set_index("Category")
-            st.bar_chart(bar_df, color="#22d3ee")
+            fig2 = go.Figure()
+            fig2.add_trace(go.Bar(
+                x=["Income", "Expense"],
+                y=[features['total_credit'], features['total_debit']],
+                marker_color=["#22d3ee", "#f43f5e"],
+                width=0.4
+            ))
+            fig2.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(l=0,r=0,t=0,b=0), height=220,
+                xaxis=dict(showgrid=False, color="#7a90b0", tickfont=dict(size=11)),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", color="#7a90b0", tickfont=dict(size=10)),
+                showlegend=False
+            )
+            st.plotly_chart(fig2, use_container_width=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
 
         # --- Credit Score ---
-        st.markdown("""
-        <div class="section-card">
-            <div class="section-header">
-                <span class="section-icon">🧠</span>
-                <span class="section-title">AI Credit Intelligence</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
         score_pct = int((score - 300) / 600 * 100)
         inflow_pct = min(int(features['inflow_count'] / max(features['outflow_count'], 1) * 50), 100)
         ticket_pct = min(int(features['avg_ticket_size'] / 1000 * 100), 100)
         stability_pct = min(int(features.get('cashflow_stability', 0.5) * 100), 100)
 
+        if risk == "Low Risk":
+            risk_color = "#34d399"; risk_bg = "rgba(16,185,129,0.12)"; risk_border = "rgba(16,185,129,0.25)"
+            verdict_icon = "✅"; verdict_text = "Approved for Instant Micro-Loan"
+            verdict_color = "#34d399"; verdict_bg = "rgba(16,185,129,0.12)"; verdict_border = "rgba(16,185,129,0.25)"
+            rate = "14.5% p.a."
+        elif risk == "Moderate Risk":
+            risk_color = "#fbbf24"; risk_bg = "rgba(245,158,11,0.12)"; risk_border = "rgba(245,158,11,0.25)"
+            verdict_icon = "⚠️"; verdict_text = "Eligible with Conditions"
+            verdict_color = "#fbbf24"; verdict_bg = "rgba(245,158,11,0.12)"; verdict_border = "rgba(245,158,11,0.25)"
+            rate = "18.0% p.a."
+        else:
+            risk_color = "#f87171"; risk_bg = "rgba(239,68,68,0.12)"; risk_border = "rgba(239,68,68,0.25)"
+            verdict_icon = "❌"; verdict_text = "Loan Not Recommended"
+            verdict_color = "#f87171"; verdict_bg = "rgba(239,68,68,0.12)"; verdict_border = "rgba(239,68,68,0.25)"
+            rate = "N/A"
+
+        def fbar(label, pct):
+            return (
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">' +
+                f'<span style="font-size:0.76rem;color:#7a90b0;width:148px;flex-shrink:0;">{label}</span>' +
+                f'<div style="flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;">' +
+                f'<div style="height:100%;width:{pct}%;background:linear-gradient(90deg,#3b82f6,#22d3ee);border-radius:100px;"></div>' +
+                f'</div>' +
+                f'<span style="font-size:0.72rem;color:#e8eef8;font-family:monospace;width:34px;text-align:right;">{pct}%</span>' +
+                f'</div>'
+            )
+
         col_score, col_factors = st.columns([1, 2])
 
         with col_score:
-            st.markdown(f"""
-            <div class="score-display" style="flex-direction:column;align-items:flex-start;">
-                <div class="score-label">AI CREDIT SCORE</div>
-                <div class="score-number">{score}</div>
-                <div class="score-out">out of 900</div>
-                <br>
-                <div class="{risk_class}" style="margin-top:4px;">
-                    <span class="risk-pill {risk_class}">{risk_icon} {risk}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'''<div style="background:#0b1120;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;">
+                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:6px;">🧠 AI CREDIT SCORE</div>
+                <div style="font-size:3rem;font-weight:800;background:linear-gradient(135deg,#22d3ee,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:monospace;">{score}</div>
+                <div style="font-size:0.75rem;color:#7a90b0;margin-top:4px;margin-bottom:14px;">out of 900</div>
+                <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:100px;background:{risk_bg};border:1px solid {risk_border};color:{risk_color};font-weight:700;font-size:0.82rem;">{risk_icon} {risk}</div>
+                </div>''',
+                unsafe_allow_html=True
+            )
 
         with col_factors:
-            st.markdown(f"""
-            <div style="padding:4px 0;">
-                <div style="font-size:0.78rem;color:#7a90b0;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;margin-bottom:16px;">SCORING FACTORS</div>
+            st.markdown(
+                f'''<div style="background:#0b1120;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;">
+                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:14px;">SCORING FACTORS</div>
+                {fbar("Credit score range", score_pct)}
+                {fbar("Inflow / Outflow ratio", inflow_pct)}
+                {fbar("Avg ticket size", ticket_pct)}
+                {fbar("Cashflow stability", stability_pct)}
+                </div>''',
+                unsafe_allow_html=True
+            )
 
-                <div class="factor-row">
-                    <span class="factor-label-text">Credit score range</span>
-                    <div class="factor-bar-bg"><div class="factor-bar-fill" style="width:{score_pct}%"></div></div>
-                    <span class="factor-val-text">{score_pct}%</span>
-                </div>
-
-                <div class="factor-row">
-                    <span class="factor-label-text">Inflow / Outflow ratio</span>
-                    <div class="factor-bar-bg"><div class="factor-bar-fill" style="width:{inflow_pct}%"></div></div>
-                    <span class="factor-val-text">{inflow_pct}%</span>
-                </div>
-
-                <div class="factor-row">
-                    <span class="factor-label-text">Avg ticket size</span>
-                    <div class="factor-bar-bg"><div class="factor-bar-fill" style="width:{ticket_pct}%"></div></div>
-                    <span class="factor-val-text">{ticket_pct}%</span>
-                </div>
-
-                <div class="factor-row">
-                    <span class="factor-label-text">Cashflow stability</span>
-                    <div class="factor-bar-bg"><div class="factor-bar-fill" style="width:{stability_pct}%"></div></div>
-                    <span class="factor-val-text">{stability_pct}%</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
         # --- Loan Recommendation ---
-        st.markdown("""
-        <div class="section-card">
-            <div class="section-header">
-                <span class="section-icon">💸</span>
-                <span class="section-title">Loan Recommendation</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if risk == "Low Risk":
-            verdict_class = "verdict-approved"
-            verdict_icon = "✅"
-            verdict_text = "Approved for Instant Micro-Loan"
-            rate = "14.5% p.a."
-        elif risk == "Moderate Risk":
-            verdict_class = "verdict-conditional"
-            verdict_icon = "⚠️"
-            verdict_text = "Eligible with Conditions"
-            rate = "18.0% p.a."
-        else:
-            verdict_class = "verdict-rejected"
-            verdict_icon = "❌"
-            verdict_text = "Loan Not Recommended"
-            rate = "N/A"
-
-        st.markdown(f"""
-        <div class="loan-card">
+        st.markdown(
+            f'''<div style="background:rgba(16,185,129,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
             <div>
-                <div class="loan-label">RECOMMENDED AMOUNT</div>
-                <div class="loan-amount">₹{eligible:,}</div>
-                <div class="loan-rate">Interest rate: <span class="mono">{rate}</span></div>
+                <div style="font-size:0.7rem;color:#7a90b0;font-family:monospace;letter-spacing:0.1em;margin-bottom:5px;">💸 LOAN RECOMMENDATION</div>
+                <div style="font-size:1.7rem;font-weight:800;color:#34d399;font-family:monospace;">₹{eligible:,}</div>
+                <div style="font-size:0.78rem;color:#7a90b0;margin-top:2px;">Rate: <span style="font-family:monospace;">{rate}</span></div>
             </div>
-            <div>
-                <span class="verdict-badge {verdict_class}">{verdict_icon} {verdict_text}</span>
+            <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;background:{verdict_bg};border:1px solid {verdict_border};color:{verdict_color};font-weight:700;font-size:0.85rem;">
+                {verdict_icon} {verdict_text}
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            </div>''',
+            unsafe_allow_html=True
+        )
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
         # --- Raw Data Toggle ---
         with st.expander("🔍 View Raw Transaction Data"):
-            st.dataframe(
-                df.style.set_properties(**{
-                    'background-color': '#0b1120',
-                    'color': '#e8eef8',
-                    'border-color': 'rgba(255,255,255,0.06)'
-                }),
-                use_container_width=True
-            )
-
-
+            st.dataframe(df, use_container_width=True)
