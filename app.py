@@ -3,16 +3,20 @@ import pandas as pd
 from utils import extract_features
 from scoring import calculate_credit_score, risk_category
 
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="UdaanCredit",
+    layout="wide"
+)
+
+# ---------------- GLOBAL CSS ----------------
 st.markdown("""
 <style>
-
-/* Page base */
 .stApp {
     background: radial-gradient(circle at top left, #020617, #000);
     color: #e5e7eb;
 }
 
-/* Center login card */
 .login-card {
     max-width: 420px;
     margin: 8vh auto;
@@ -23,12 +27,10 @@ st.markdown("""
     box-shadow: 0 25px 60px rgba(0,0,0,0.7);
 }
 
-/* Brand */
 .brand {
     font-size: 32px;
     font-weight: 700;
     color: #22c55e;
-    margin-bottom: 4px;
 }
 
 .tagline {
@@ -37,13 +39,11 @@ st.markdown("""
     margin-bottom: 28px;
 }
 
-/* Buttons */
 .stButton>button {
     background: linear-gradient(135deg, #22c55e, #16a34a);
     color: black;
     font-weight: 600;
     border-radius: 12px;
-    padding: 10px 16px;
     border: none;
 }
 
@@ -51,44 +51,23 @@ st.markdown("""
     background: linear-gradient(135deg, #16a34a, #15803d);
 }
 
-/* Input fields */
 input {
     border-radius: 10px !important;
 }
 
-/* Cards */
 .card {
     background: #020617;
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 18px;
     padding: 22px;
+    margin-bottom: 20px;
 }
 
-/* Risk badges */
-.risk-low {
-    color: #22c55e;
-    font-weight: 700;
-}
-
-.risk-medium {
-    color: #facc15;
-    font-weight: 700;
-}
-
-.risk-high {
-    color: #ef4444;
-    font-weight: 700;
-}
-
+.risk-low { color: #22c55e; font-weight: 700; }
+.risk-medium { color: #facc15; font-weight: 700; }
+.risk-high { color: #ef4444; font-weight: 700; }
 </style>
 """, unsafe_allow_html=True)
-
-
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="UdaanCredit",
-    layout="wide"
-)
 
 # ---------------- SESSION STATE ----------------
 if "page" not in st.session_state:
@@ -123,9 +102,9 @@ if st.session_state.page == "login":
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 # ================= SIGNUP =================
 elif st.session_state.page == "signup":
+
     st.title("UdaanCredit")
     st.subheader("Create Account")
 
@@ -142,6 +121,7 @@ elif st.session_state.page == "signup":
 
     st.button("Back to Login", on_click=go, args=("login",))
 
+# ================= DASHBOARD =================
 elif st.session_state.page == "dashboard":
 
     # HEADER
@@ -154,7 +134,7 @@ elif st.session_state.page == "dashboard":
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # UPLOAD CARD
+    # UPLOAD
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Transaction Data Upload")
     uploaded_file = st.file_uploader("Upload UPI Transaction CSV", type=["csv"])
@@ -167,13 +147,13 @@ elif st.session_state.page == "dashboard":
         df["amount"] = pd.to_numeric(df["amount"])
 
         # OVERVIEW
-        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("Transaction Overview")
         st.dataframe(df, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         # CASHFLOW
-        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("Cashflow Analysis")
 
         c1, c2 = st.columns(2)
@@ -190,49 +170,42 @@ elif st.session_state.page == "dashboard":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-       # CREDIT EVALUATION
-features = extract_features(df)
-score = calculate_credit_score(features)
-risk = risk_category(score)
+        # CREDIT EVALUATION
+        features = extract_features(df)
+        score = calculate_credit_score(features)
+        risk = risk_category(score)
 
-# Risk color logic
-if score >= 700:
-    risk_class = "risk-low"
-elif score >= 600:
-    risk_class = "risk-medium"
-else:
-    risk_class = "risk-high"
+        if score >= 700:
+            risk_class = "risk-low"
+        elif score >= 600:
+            risk_class = "risk-medium"
+        else:
+            risk_class = "risk-high"
 
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.subheader("Credit Evaluation")
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("Credit Evaluation")
 
-m1, m2 = st.columns(2)
+        m1, m2 = st.columns(2)
+        with m1:
+            st.metric("Credit Score", score)
 
-with m1:
-    st.metric(
-        label="Credit Score",
-        value=score,
-        delta="Good" if score >= 700 else "Poor",
-        delta_color="normal"
-    )
+        with m2:
+            st.markdown(
+                f"""
+                <div class="{risk_class}" style="font-size:22px;">
+                    Risk Category<br>
+                    <span style="font-size:28px;">{risk}</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-with m2:
-    st.markdown(
-        f"""
-        <div class="{risk_class}" style="font-size:22px;">
-            Risk Category<br>
-            <span style="font-size:28px;">{risk}</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-st.markdown('</div>', unsafe_allow_html=True)
-
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # LOAN
-        st.markdown('<div class="section card">', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("Loan Recommendation")
+
         eligible = int(features["total_credit"] * 0.3)
         st.write(f"**Recommended Loan Amount:** ₹{eligible}")
 
